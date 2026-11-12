@@ -9,10 +9,13 @@ from datetime import datetime
 import os
 
 # API KEY do GROQ
-api_key = os.getenv("secret_key")
+# Keep legacy variable support while documenting the provider-specific name.
+api_key = os.getenv("GROQ_API_KEY") or os.getenv("secret_key")
+if not api_key:
+    raise RuntimeError("Set GROQ_API_KEY before starting the local demo.")
 
 # Configuração inicial do QP
-llm = Groq(model="llama3-70b-8192", api_key=api_key)
+llm = Groq(model=os.getenv("GROQ_MODEL", "llama3-70b-8192"), api_key=api_key)
 
 # Pipeline de consulta
 def descricao_colunas(df):
@@ -107,7 +110,7 @@ def add_historico(pergunta, resposta, historico_estado):
 # Função para gerar o PDF
 def gerar_pdf(historico_estado):
     if not historico_estado:
-        return "Nenhum dado para adicionar ao PDF.", None
+        return None  # gr.File accepts a file path or None, not a (message, file) tuple.
 
     # Gerar nome de arquivo com timestamp
     timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
